@@ -28,16 +28,16 @@ MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true }, (err
     // })
 
 
-    // db.collection('Users').insertOne({ name: 'Bert', age: 43, location: 'Malle' }, (err, result) => {
-    //     if (err) {
-    //         return console.log('Unable to insert user.', err)
-    //     }
+    db.collection('Users').insertOne({ name: 'Betsy', age: 62, location: 'NewYork' }, (err, result) => {
+        if (err) {
+            return console.log('Unable to insert user.', err)
+        }
 
-    //     console.log('Successfully connected tot the database.')
-    //     console.log('------------------')
-    //     console.log(JSON.stringify(result.ops[0]._id.getTimestamp(), undefined, 3))
-    //     console.log('------------------')
-    // })
+        console.log('Successfully connected tot the database.')
+        console.log('------------------')
+        console.log(JSON.stringify(result.ops[0]._id.getTimestamp(), undefined, 3))
+        console.log('------------------')
+    })
 
     client.close();
 
