@@ -57,9 +57,42 @@ app.get('/todos/:id', (req, res) => {
     }).catch((e) => res.status(404).send(e))
 })
 
+
+app.delete('/todos/:id', (req, res) => {
+    //get the id
+    var id = req.params.id
+
+    //console.log(`Param id: ${id}`)
+
+    if (!ObjectID.isValid(id)) {
+        //console.log('Invalid ObjectID')
+        return res.status(200).send('Invalid ObjectID')
+    } else {
+        //console.log('ID validated successfully')
+    }
+
+    Todo.findByIdAndDelete(id).then((todo) => {
+            if (!todo) {
+                //console.log('Document with object id does not exist.')
+                return res.status(200).send('Document with object id does not exist.')
+            }
+            //console.log({ todo, "status": "deleted" })
+            res.status(200).send({ todo, "status": "deleted" })
+        })
+        .catch((e) => {
+            //console.log('Unhandled error occured' + e.message)
+            res.status(200).send('Unhandled error occured' + e.message)
+        })
+})
+
 app.listen(port, () => {
     console.log(`Started on port ${port}`)
 })
+
+
+
+
+
 
 
 module.exports = { app }
