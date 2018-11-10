@@ -1,18 +1,23 @@
 const expect = require('expect')
 const request = require('supertest')
+const { ObjectID } = require('mongodb')
 
 const { app } = require('./../server')
 const { Todo } = require('./../models/todo')
 
 const todos = [{
+    _id: new ObjectID(),
     text: 'First test todo'
 }, {
+    _id: new ObjectID(),
     text: 'Second test todo'
 }]
 
+
+//this will be exectue before each test case
 beforeEach((done) => {
-    //this will delete all todos in the database
-    Todo.remove({}).then(() => {
+    //this will delete all todos in the database and insert the 2 records with insertMany
+    Todo.deleteMany({}).then(() => {
         return Todo.insertMany(todos)
     }).then(() => done())
 })
@@ -72,4 +77,36 @@ describe('GET /todos', () => {
             })
             .end(done)
     })
+})
+
+
+describe('GET /todos/:id', () => {
+
+    it('should return todo doc', (done) => {
+
+        request(app)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(todos[0].text)
+            })
+            .end(done)
+
+    })
+
+    it('should return a 404 if todo not found', (done) => {
+        //make sure you get a 404 back
+        request(app)
+            .get(`/todos/${new ObjectID}`)
+            .expect(404)
+            .end(done);
+    })
+
+    it('should return 404 for non-object ids', (done) => {
+        request(app)
+            .get(`/todos/2133215`)
+            .expect(404)
+            .end(done);
+    })
+
 })

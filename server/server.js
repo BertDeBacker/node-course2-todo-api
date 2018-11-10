@@ -23,7 +23,7 @@ app.post('/todos', (req, res) => {
         res.status(400).send(e)
     })
 
-    console.log(req.body)
+    //console.log(req.body)
 })
 
 app.get('/todos', (req, res) => {
@@ -38,32 +38,27 @@ app.get('/todos', (req, res) => {
 app.get('/todos/:id', (req, res) => {
     var id = req.params.id
 
-    //validate id using isValid
+    //Validate id using isValid
     //404 - send back empty send
     if (!ObjectID.isValid(id)) {
         return res.status(404).send('Invalid id')
     }
 
+    //Lookup by ID
     Todo.findById(id).then((todo) => {
         if (todo) {
+            //Found
             res.status(200).send({ todo })
         } else {
+            //Not Found
             res.status(404).send({})
         }
-    }, (e) => {
-        res.status(404).send(e)
-    })
-
-    //findById
-    //Success  // if todo - send it back
-    // if not todo - send 404 with empty body
-
-    //Error - 400 - send back nothing
-
+    }).catch((e) => res.status(404).send(e))
 })
 
 app.listen(3001, () => {
     console.log('Started on port 3001')
 })
+
 
 module.exports = { app }
