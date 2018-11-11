@@ -66,7 +66,7 @@ app.delete('/todos/:id', (req, res) => {
 
     if (!ObjectID.isValid(id)) {
         //console.log('Invalid ObjectID')
-        return res.status(200).send('Invalid ObjectID')
+        return res.status(404).send('Invalid ObjectID')
     } else {
         //console.log('ID validated successfully')
     }
@@ -74,14 +74,14 @@ app.delete('/todos/:id', (req, res) => {
     Todo.findByIdAndDelete(id).then((todo) => {
             if (!todo) {
                 //console.log('Document with object id does not exist.')
-                return res.status(200).send('Document with object id does not exist.')
+                return res.status(404).send('Document with object id does not exist.')
             }
             //console.log({ todo, "status": "deleted" })
             res.status(200).send({ todo, "status": "deleted" })
         })
         .catch((e) => {
             //console.log('Unhandled error occured' + e.message)
-            res.status(200).send('Unhandled error occured' + e.message)
+            res.status(404).send('Unhandled error occured' + e.message)
         })
 })
 
