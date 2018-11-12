@@ -1,7 +1,7 @@
 require('./config/config.js')
 
+//library imports
 const _ = require('lodash')
-    //library imports
 const express = require('express')
 const bodyParser = require('body-parser')
 
@@ -38,7 +38,6 @@ app.get('/todos', (req, res) => {
     })
 })
 
-
 app.get('/todos/:id', (req, res) => {
     var id = req.params.id
 
@@ -59,7 +58,6 @@ app.get('/todos/:id', (req, res) => {
         }
     }).catch((e) => res.status(404).send(e))
 })
-
 
 app.delete('/todos/:id', (req, res) => {
     //get the id
@@ -122,10 +120,26 @@ app.patch('/todos/:id', (req, res) => {
 
 })
 
+app.post('/users', (req, res) => {
+
+    var o = _.pick(req.body, ['email', 'password'])
+
+    var oUser = new User({ 'email': o.email, 'password': o.password })
+
+    oUser.save().then(() => {
+            return oUser.generateAuthToken()
+        }).then((token) => {
+            res.header('x-auth', token).send(oUser)
+        })
+        .catch((e) => {
+            res.status(400).send(e)
+        })
+
+})
+
 
 app.listen(port, () => {
     console.log(`Started on port ${port}`)
 })
-
 
 module.exports = { app }
