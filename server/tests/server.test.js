@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const expect = require('expect')
 const request = require('supertest')
 const { ObjectID } = require('mongodb')
@@ -10,7 +11,9 @@ const todos = [{
     text: 'First test todo'
 }, {
     _id: new ObjectID(),
-    text: 'Second test todo'
+    text: 'Second test todo',
+    completed: true,
+    colpletedAt: 333
 }]
 
 
@@ -150,6 +153,63 @@ describe('DELETE /todos/:id', () => {
             .delete('/todos/5be8559d4ef02c7c48fa13d9123')
             .expect(404)
             .end(done)
+    })
+})
+
+describe('PATCH /todos/:id', () => {
+
+    it('Should update the todo', (done) => {
+        //grab id of first item
+        var _id = todos[0]._id
+        console.log(`id: ${_id}`);
+
+        //update text, set completed true
+        var body = { 'completed': true, 'text': 'This is the new todo text' }
+        request(app)
+            .patch(`/todos/${_id}`)
+            .send(body)
+            //200
+            .expect(200)
+            //custom assertion, text is changed, completed is true and completedAt is a number(tobeA)
+            .expect((res) => {
+                var body2 = _.pick(res.body, ['text', 'completed', 'completedAt'])
+                expect(body2.completed).toBe(true)
+                expect(body2.text).toBe(body.text)
+                expect(typeof body2.completedAt).toBe('number')
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done()
+            })
+    })
+
+    it('Should clear completedAt when todo is not completed', (done) => {
+        //grab id of second todo item
+        var _id = todos[1]._id
+            //update text, set completed to false
+        var body = { 'completed': false, 'text': 'Updated text for test' }
+        request(app)
+            .patch(`/todos/${_id}`)
+            .send(body)
+            //200
+            .expect(200)
+            .expect((res) => {
+                var body2 = _.pick(res.body, ['completed', 'completedAt', 'text'])
+                    //text is changed, completed is false, completedAt is null .toNotExist
+                expect(body2.text).toBe(body.text)
+                expect(body2.completed).toBe(false);
+                expect(body2.completedAt).toNotExist
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err)
+                }
+                done()
+            })
+
+
     })
 
 })

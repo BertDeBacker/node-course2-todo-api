@@ -1,3 +1,5 @@
+require('./config/config.js')
+
 const _ = require('lodash')
     //library imports
 const express = require('express')
@@ -92,29 +94,29 @@ app.patch('/todos/:id', (req, res) => {
     var body = _.pick(req.body, ['text', 'completed'])
 
     if (!ObjectID.isValid(id)) {
-        console.log(`Invalid ID: ${id}`)
+        //console.log(`Invalid ID: ${id}`)
         return res.status(404).send('Invalid ObjectID')
     }
     console.log(`Valid ID: ${id}`)
 
     if (_.isBoolean(body.completed) && body.completed) {
         body.completedAt = new Date().getTime()
-        console.log(`CompletedAt Set`)
+            //console.log(`CompletedAt Set`)
     } else {
         body.completedAt = null
         body.completed = false
-        console.log(`CompletedAt set to null, Completed set to false`)
+            //console.log(`CompletedAt set to null, Completed set to false`)
     }
 
     Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then((todo) => {
         if (!todo) {
-            console.log(`Todo not found`)
+            //console.log(`Todo not found`)
             return res.sendStatus(400)
         }
-        console.log(`Todo Updated`)
+        //console.log(`Todo Updated`)
         res.send(todo);
     }).catch((err) => {
-        console.log(`Error occured: ${err}`)
+        //console.log(`Error occured: ${err}`)
         res.sendStatus(400)
     })
 
