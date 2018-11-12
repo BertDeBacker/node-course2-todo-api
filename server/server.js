@@ -1,10 +1,11 @@
-//library imports
-var express = require('express')
-var bodyParser = require('body-parser')
+const _ = require('lodash')
+    //library imports
+const express = require('express')
+const bodyParser = require('body-parser')
 
 //local imports
 //use destructuring to create and obtain the variable 'mongoose'
-var { ObjectID } = require('mongodb').ObjectID
+const { ObjectID } = require('mongodb').ObjectID
 var { mongoose } = require('./db/mongoose')
 var { Todo } = require('./models/todo')
 var { User } = require('./models/user')
@@ -67,8 +68,6 @@ app.delete('/todos/:id', (req, res) => {
     if (!ObjectID.isValid(id)) {
         //console.log('Invalid ObjectID')
         return res.status(404).send('Invalid ObjectID')
-    } else {
-        //console.log('ID validated successfully')
     }
 
     Todo.findByIdAndDelete(id).then((todo) => {
@@ -85,14 +84,46 @@ app.delete('/todos/:id', (req, res) => {
         })
 })
 
-app.listen(port, () => {
-    console.log(`Started on port ${port}`)
+app.patch('/todos/:id', (req, res) => {
+
+    console.log(req.params)
+    var id = req.params.id
+
+    var body = _.pick(req.body, ['text', 'completed'])
+
+    if (!ObjectID.isValid(id)) {
+        console.log(`Invalid ID: ${id}`)
+        return res.status(404).send('Invalid ObjectID')
+    }
+    console.log(`Valid ID: ${id}`)
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime()
+        console.log(`CompletedAt Set`)
+    } else {
+        body.completedAt = null
+        body.completed = false
+        console.log(`CompletedAt set to null, Completed set to false`)
+    }
+
+    Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then((todo) => {
+        if (!todo) {
+            console.log(`Todo not found`)
+            return res.sendStatus(400)
+        }
+        console.log(`Todo Updated`)
+        res.send(todo);
+    }).catch((err) => {
+        console.log(`Error occured: ${err}`)
+        res.sendStatus(400)
+    })
+
 })
 
 
-
-
-
+app.listen(port, () => {
+    console.log(`Started on port ${port}`)
+})
 
 
 module.exports = { app }
