@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const jwt = require('jsonwebtoken')
 const _ = require('lodash')
+const bcrypt = require('bcryptjs')
 
 var UserSchema = new mongoose.Schema({
     email: {
@@ -41,6 +42,7 @@ UserSchema.methods.toJSON = function() {
     return _.pick(userObject, ['_id', 'email'])
 };
 
+//Add to methods will make this function an INSTANCE method
 UserSchema.methods.generateAuthToken = function() {
     //Note; arrow functions do not bind this to this file!! Therefore we need to use old function syntax here.    
     //UserSchema.methods.generateAuthToken = () => {
@@ -56,6 +58,53 @@ UserSchema.methods.generateAuthToken = function() {
         return token
     })
 }
+
+//Add to statics will make this function a MODULE method
+UserSchema.statics.findByToken = function(token) {
+    var User = this;
+    var decoded;
+
+    try {
+        decoded = jwt.verify(token, 'abc123')
+
+    } catch (error) {
+        return Promise.reject()
+    }
+
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    })
+
+}
+
+//Add a function before (pre) the SAVE event fires.  
+//The function takes an argument next which must be 
+// fired in the function, if not the app will crash!
+UserSchema.pre('save', function(next) {
+    var user = this
+    if (user.isModified('password')) {
+        //user.password
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash
+                next()
+            })
+        })
+
+
+        // bcrypt.genSalt(10, (err, salt) => {
+        //     bcrypt.hash(password, salt, ((err, hash) => {
+        //         console.log(hash)
+        //     }))
+        // })
+
+    } else {
+        next()
+    }
+
+})
 
 var User = mongoose.model('User', UserSchema)
 
