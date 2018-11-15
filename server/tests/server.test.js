@@ -5,33 +5,14 @@ const { ObjectID } = require('mongodb')
 
 const { app } = require('./../server')
 const { Todo } = require('./../models/todo')
+const { User } = require('./../models/user')
 
-const todos = [{
-    _id: new ObjectID(),
-    text: 'First test todo'
-}, {
-    _id: new ObjectID(),
-    text: 'Second test todo',
-    completed: true,
-    completedAt: 333
-}];
+const { todos, populateTodos, users, populateUsers } = require('./seed/seed')
 
 
-//this will be exectue before each test case
-//this works, returns one error in test nr 1
+beforeEach(populateTodos)
+before(populateUsers)
 
-// beforeEach((done) => {
-//     Todo.deleteMany({}, () => {
-//         Todo.insertMany(todos).then(done())
-//     })
-// })
-
-//this works, returns one error in test nr 1
-beforeEach((done) => {
-    Todo.deleteMany({}).then(() => {
-        Todo.insertMany(todos).then(done())
-    })
-})
 
 describe('POST /todos', () => {
     //this is a assynchronous test, done needs to be specified otherwise it will not work
@@ -83,6 +64,8 @@ describe('POST /todos', () => {
 })
 
 describe('GET /todos', () => {
+
+
     it('Should get all todos', (done) => {
         request(app)
             .get('/todos')
@@ -173,7 +156,7 @@ describe('PATCH /todos/:id', () => {
     it('Should update the todo', (done) => {
         //grab id of first item
         var _id = todos[0]._id
-        console.log(`id: ${_id}`);
+            //console.log(`id: ${_id}`);
 
         //update text, set completed true
         var body = { 'completed': true, 'text': 'This is the new todo text' }
@@ -220,8 +203,95 @@ describe('PATCH /todos/:id', () => {
                 }
                 done()
             })
+    })
+})
+
+
+describe('GET /users/me', () => {
+
+    it('should return user if authenticated', (done) => {
+        request(app)
+            .get('/user/me')
+            .set('x-auth', users[0].tokens[0].token)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toBe(users[0]._id.toString())
+                expect(res.body.email).toBe(users[0].email)
+            })
+            .end(done)
+    })
+
+    it('should return 404 if not authenticated', (done) => {
+        request(app)
+            .get('/user/me')
+            .set('')
+            .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual(undefined)
+            })
+            .end(done())
+    })
+
+})
+
+describe('POST /users', () => {
+
+    it('Should create a user', (done) => {
+        var email = 'example@example.com'
+        var password = '123mnb!'
+
+        request(app)
+            .post('/users')
+            .send({ email, password })
+            .expect(200)
+            .expect((res) => {
+                expect(res.header['x-auth']).toBeDefined
+                expect(res.body._id).toBeDefined
+                expect(res.body.email).toBe(email)
+            })
+            .end((err) => {
+                if (err) {
+                    return done(err)
+                }
+                User.find({ email }).then((user) => {
+                    //console.log(user)
+                    //expect(user).toBeDefined()
+                    //expect(user.password).toNotEqual(password)
+                    if (user) console.log('er is een user')
+                    done()
+                })
+
+            })
+    })
+
+    it('Should return validation errors if request is invalid', (done) => {
+
+        request(app)
+            .post('/users')
+            .send({
+                email: 'and',
+                password: '123'
+            })
+            .expect(400)
+            .end(done)
+    })
+
+
+    it('Should not create a user if email is already used', (done) => {
+        var email = users[0].email
+        var password = '123mnb!'
+
+        request(app)
+            .post('/users')
+            .send({ email, password })
+            .expect(400)
+            .end((err) => {
+                if (err) {
+                    return done(err)
+                }
+                done()
+            })
 
 
     })
-
 })

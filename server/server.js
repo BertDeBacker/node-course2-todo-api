@@ -88,7 +88,7 @@ app.delete('/todos/:id', (req, res) => {
 
 app.patch('/todos/:id', (req, res) => {
 
-    console.log(req.params)
+    //console.log(req.params)
     var id = req.params.id
 
     var body = _.pick(req.body, ['text', 'completed'])
@@ -97,7 +97,7 @@ app.patch('/todos/:id', (req, res) => {
         //console.log(`Invalid ID: ${id}`)
         return res.status(404).send('Invalid ObjectID')
     }
-    console.log(`Valid ID: ${id}`)
+    //console.log(`Valid ID: ${id}`)
 
     if (_.isBoolean(body.completed) && body.completed) {
         body.completedAt = new Date().getTime()
