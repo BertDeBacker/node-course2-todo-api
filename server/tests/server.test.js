@@ -13,16 +13,24 @@ const todos = [{
     _id: new ObjectID(),
     text: 'Second test todo',
     completed: true,
-    colpletedAt: 333
-}]
+    completedAt: 333
+}];
 
 
 //this will be exectue before each test case
+//this works, returns one error in test nr 1
+
+// beforeEach((done) => {
+//     Todo.deleteMany({}, () => {
+//         Todo.insertMany(todos).then(done())
+//     })
+// })
+
+//this works, returns one error in test nr 1
 beforeEach((done) => {
-    //this will delete all todos in the database and insert the 2 records with insertMany
     Todo.deleteMany({}).then(() => {
-        return Todo.insertMany(todos)
-    }).then(() => done())
+        Todo.insertMany(todos).then(done())
+    })
 })
 
 describe('POST /todos', () => {
@@ -38,19 +46,23 @@ describe('POST /todos', () => {
             //start testing - we expect a success return value 200
             .expect(200)
             .expect((res) => {
-                expect(res.body.text).toBe(text);
+                expect(res.body.text).toBe(text)
             })
             .end((err, res) => {
                 if (err) {
                     //we add return here so that the function stops exection
                     return done(err)
                 }
+
                 Todo.find({ text }).then((todos) => {
                     expect(todos.length).toBe(1)
                     expect(todos[0].text).toBe(text)
-                    done();
-                }).catch((e) => done(e))
+                    done()
+                }).catch((e) => {
+                    done(e)
+                })
             })
+
     })
 
     it('should not create a todo without text', (done) => {
