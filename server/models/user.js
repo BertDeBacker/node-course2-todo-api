@@ -79,6 +79,27 @@ UserSchema.statics.findByToken = function(token) {
 
 }
 
+UserSchema.statics.findByCredentials = function(email, password) {
+    var User = this
+    return User.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject()
+        }
+
+        return new Promise((resolve, reject) => {
+            //Use bcrypt.compare to compare password and user.password
+            bcrypt.compare(password, user.password, (err, res) => {
+                if (res) {
+                    resolve(user)
+                } else {
+                    reject()
+                }
+            })
+        })
+    })
+
+}
+
 //Add a function before (pre) the SAVE event fires.  
 //The function takes an argument next which must be 
 // fired in the function, if not the app will crash!
@@ -92,13 +113,6 @@ UserSchema.pre('save', function(next) {
                 next()
             })
         })
-
-
-        // bcrypt.genSalt(10, (err, salt) => {
-        //     bcrypt.hash(password, salt, ((err, hash) => {
-        //         console.log(hash)
-        //     }))
-        // })
 
     } else {
         next()
