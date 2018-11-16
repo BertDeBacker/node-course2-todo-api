@@ -59,6 +59,17 @@ UserSchema.methods.generateAuthToken = function() {
     })
 }
 
+UserSchema.methods.removeToken = function(token) {
+    var user = this
+    return user.update({
+        $pull: {
+            tokens: {
+                token: token
+            }
+        }
+    })
+}
+
 //Add to statics will make this function a MODULE method
 UserSchema.statics.findByToken = function(token) {
     var User = this;
